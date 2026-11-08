@@ -44,6 +44,14 @@ class ServicioAuth {
   final FlutterSecureStorage _almacenamiento = const FlutterSecureStorage();
 
   Future<ResultAuth> iniciarSesion(String correo, String contrasena) async {
+    try {
+      return await _iniciarSesionEnServidor(correo, contrasena);
+    } on ErrorSinConexionException {
+      throw ErrorSinConexionException(Constantes.mensajeSinConexionAutenticacion);
+    }
+  }
+
+  Future<ResultAuth> _iniciarSesionEnServidor(String correo, String contrasena) async {
     final respuesta = await _cliente.post(
       '/auth/login',
       cuerpo: {
@@ -89,18 +97,58 @@ class ServicioAuth {
     required String contrasena,
     required String confirmarContrasena,
   }) async {
-    await _cliente.post(
-      '/auth/register',
-      cuerpo: {
-        'nombre_completo': nombreCompleto,
-        'numero_dni': numeroDni,
-        'correo': correo,
-        'contrasena': contrasena,
-        'confirmar_contrasena': confirmarContrasena,
-      },
-      requiereAuth: false,
-    );
+    try {
+      await _cliente.post(
+        '/auth/register',
+        cuerpo: {
+          'nombre_completo': nombreCompleto,
+          'numero_dni': numeroDni,
+          'correo': correo,
+          'contrasena': contrasena,
+          'confirmar_contrasena': confirmarContrasena,
+        },
+        requiereAuth: false,
+      );
+    } on ErrorSinConexionException {
+      throw ErrorSinConexionException(Constantes.mensajeSinConexionAutenticacion);
+    }
+  }
+
+  Future<void> solicitarRecuperacion(String correo) async {
+    try {
+      await _cliente.post(
+        '/auth/recuperar',
+        cuerpo: {'correo': correo.trim().toLowerCase()},
+        requiereAuth: false,
+      );
+    } on ErrorNoEncontradoException {
+      throw ErrorNoEncontradoException('No existe una cuenta registrada con este correo electrónico.');
+    } on ErrorSinConexionException {
+      throw ErrorSinConexionException(Constantes.mensajeSinConexionAutenticacion);
+    }
+  }
+
+  Future<void> restablecerContrasena({
+    required String correo,
+    required String codigo,
+    required String nuevaContrasena,
+    required String confirmarContrasena,
+  }) async {
+    try {
+      await _cliente.post(
+        '/auth/restablecer',
+        cuerpo: {
+          'correo': correo.trim().toLowerCase(),
+          'codigo': codigo.trim(),
+          'nueva_contrasena': nuevaContrasena,
+          'confirmar_contrasena': confirmarContrasena,
+        },
+        requiereAuth: false,
+      );
+    } on ErrorNoEncontradoException {
+      throw ErrorNoEncontradoException('No existe una cuenta registrada con este correo electrónico.');
+    } on ErrorSinConexionException {
+      throw ErrorSinConexionException(Constantes.mensajeSinConexionAutenticacion);
+    }
   }
 }
-
-

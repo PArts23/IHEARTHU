@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:iheart/nucleo/constantes.dart';
 import 'package:iheart/nucleo/tema.dart';
 import 'package:iheart/nucleo/extensiones.dart';
 import 'package:iheart/nucleo/proveedor_estado.dart';
@@ -120,8 +121,8 @@ class _PantallaLoginState extends State<PantallaLogin> {
                     if (valor == null || valor.isEmpty) {
                       return 'La contraseña es obligatoria';
                     }
-                    if (valor.length < 6) {
-                      return 'Mínimo 6 caracteres';
+                    if (valor.length < Constantes.longitudMinimaContrasena) {
+                      return 'La contraseña debe tener al menos ${Constantes.longitudMinimaContrasena} caracteres';
                     }
                     return null;
                   },

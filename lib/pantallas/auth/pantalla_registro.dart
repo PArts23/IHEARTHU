@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:iheart/nucleo/constantes.dart';
 import 'package:iheart/nucleo/tema.dart';
 import 'package:iheart/nucleo/extensiones.dart';
 import 'package:iheart/nucleo/proveedor_estado.dart';
 import 'package:iheart/widgets/boton_primario.dart';
+import 'package:iheart/widgets/boton_secundario.dart';
 import 'package:iheart/widgets/campo_texto.dart';
 
 class PantallaRegistro extends StatefulWidget {
@@ -49,7 +51,7 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
       );
       if (mounted) {
         context.mostrarMensajeExito('Cuenta registrada con éxito. Inicie sesión.');
-        context.pop();
+        context.go('/login');
       }
     } catch (e) {
       if (mounted) {
@@ -66,6 +68,11 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
       backgroundColor: TemaApp.blancoFondo,
       appBar: AppBar(
         title: const Text('Registro de paciente'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: 'Volver al inicio de sesión',
+          onPressed: () => context.go('/login'),
+        ),
         backgroundColor: TemaApp.rojoPrimario,
         foregroundColor: TemaApp.blancoFondo,
       ),
@@ -136,7 +143,7 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
                 CampoTexto(
                   controlador: _controladorContrasena,
                   etiqueta: 'Contraseña',
-                  pista: 'Mínimo 6 caracteres',
+                  pista: 'Mínimo ${Constantes.longitudMinimaContrasena} caracteres',
                   iconoPrefijo: Icons.lock_outlined,
                   ocultarTexto: _ocultarContrasena,
                   iconoSufijo: IconButton(
@@ -154,8 +161,8 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
                     if (valor == null || valor.isEmpty) {
                       return 'La contraseña es obligatoria';
                     }
-                    if (valor.length < 6) {
-                      return 'La contraseña debe tener al menos 6 caracteres';
+                    if (valor.length < Constantes.longitudMinimaContrasena) {
+                      return 'La contraseña debe tener al menos ${Constantes.longitudMinimaContrasena} caracteres';
                     }
                     return null;
                   },
@@ -193,6 +200,11 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
                   texto: 'Registrar cuenta',
                   cargando: estado.cargando,
                   alPresionar: _registrar,
+                ),
+                const SizedBox(height: 16),
+                BotonSecundario(
+                  texto: 'Ya tengo una cuenta',
+                  alPresionar: () => context.go('/login'),
                 ),
                 const SizedBox(height: 48),
                 const Text(

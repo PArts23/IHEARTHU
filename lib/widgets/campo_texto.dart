@@ -40,6 +40,7 @@ class CampoTexto extends StatelessWidget {
       decoration: InputDecoration(
         labelText: etiqueta,
         hintText: pista,
+        errorMaxLines: 3,
         prefixIcon: iconoPrefijo != null ? Icon(iconoPrefijo, color: TemaApp.textoSecundario) : null,
         suffixIcon: iconoSufijo,
         filled: true,

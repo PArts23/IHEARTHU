@@ -6,6 +6,7 @@ import 'package:iheart/modelo/inferencia_local.dart';
 import 'package:iheart/pantallas/auth/pantalla_login.dart';
 import 'package:iheart/pantallas/auth/pantalla_registro.dart';
 import 'package:iheart/pantallas/auth/pantalla_recuperar.dart';
+import 'package:iheart/pantallas/auth/pantalla_restablecer.dart';
 import 'package:iheart/pantallas/inicio/pantalla_inicio.dart';
 import 'package:iheart/pantallas/evaluar/pantalla_calibracion.dart';
 import 'package:iheart/pantallas/evaluar/pantalla_cuestionario.dart';
@@ -22,6 +23,10 @@ final GoRouter rutasApp = GoRouter(
     final estaAutenticado = token != null;
 
     final rutaActual = estado.matchedLocation;
+
+    if (rutaActual == '/restablecer') {
+      return null;
+    }
 
     if (!estaAutenticado) {
       if (rutaActual == '/login' || rutaActual == '/registro' || rutaActual == '/recuperar') {
@@ -58,6 +63,13 @@ final GoRouter rutasApp = GoRouter(
     GoRoute(
       path: '/recuperar',
       builder: (context, state) => const PantallaRecuperar(),
+    ),
+    GoRoute(
+      path: '/restablecer',
+      builder: (context, state) => PantallaRestablecer(
+        correoInicial: state.uri.queryParameters['correo'] ?? '',
+        codigoInicial: state.uri.queryParameters['codigo'] ?? '',
+      ),
     ),
     GoRoute(
       path: '/calibracion',

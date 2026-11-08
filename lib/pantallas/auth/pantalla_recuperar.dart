@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iheart/nucleo/tema.dart';
 import 'package:iheart/nucleo/extensiones.dart';
+import 'package:iheart/red/servicio_auth.dart';
 import 'package:iheart/widgets/boton_primario.dart';
 import 'package:iheart/widgets/boton_secundario.dart';
 import 'package:iheart/widgets/campo_texto.dart';
@@ -16,6 +17,7 @@ class PantallaRecuperar extends StatefulWidget {
 class _PantallaRecuperarState extends State<PantallaRecuperar> {
   final _formularioClave = GlobalKey<FormState>();
   final _controladorCorreo = TextEditingController();
+  final ServicioAuth _servicioAuth = ServicioAuth();
   bool _enviando = false;
 
   @override
@@ -31,16 +33,17 @@ class _PantallaRecuperarState extends State<PantallaRecuperar> {
       _enviando = true;
     });
 
+    final correo = _controladorCorreo.text.trim().toLowerCase();
     try {
-      // Simulando comunicación API de recuperación de contraseña
-      await Future.delayed(const Duration(seconds: 1));
+      await _servicioAuth.solicitarRecuperacion(correo);
       if (mounted) {
-        context.mostrarMensajeExito('Código de recuperación enviado a su correo.');
-        context.pop();
+        context.mostrarMensajeExito('Le enviamos un código de verificación a $correo.');
+        final ruta = Uri(path: '/restablecer', queryParameters: {'correo': correo});
+        context.pushReplacement(ruta.toString());
       }
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
-        context.mostrarMensajeError('Error al procesar la solicitud.');
+        context.mostrarMensajeError(e.toString().replaceAll('Exception: ', ''));
       }
     } finally {
       if (mounted) {
@@ -69,7 +72,7 @@ class _PantallaRecuperarState extends State<PantallaRecuperar> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const Text(
-                  'Ingrese su correo electrónico y le enviaremos un enlace con las instrucciones para restablecer su contraseña.',
+                  'Ingrese su correo electrónico y le enviaremos un código de verificación y un enlace para restablecer su contraseña.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,

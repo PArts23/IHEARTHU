@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:iheart/nucleo/tema.dart';
 
 extension ContextExtension on BuildContext {
@@ -23,5 +24,9 @@ extension ContextExtension on BuildContext {
         behavior: SnackBarBehavior.floating,
       ),
     );
+  }
+
+  void irAPestana(int indice) {
+    go('/inicio?tab=$indice&n=${DateTime.now().microsecondsSinceEpoch}');
   }
 }

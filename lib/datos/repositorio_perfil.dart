@@ -94,7 +94,7 @@ class RepositorioPerfil {
     double? imcCalculado;
     if (perfil.pesoKg != null && perfil.alturaM != null && perfil.alturaM! > 0) {
       imcCalculado = perfil.pesoKg! / (perfil.alturaM! * perfil.alturaM!);
-      imcCalculado = double.parse(imcCalculado.toStringAsFixed(2));
+      imcCalculado = double.parse(imcCalculado.toStringAsFixed(1));
     }
 
     final perfilActualizado = PerfilPaciente(
@@ -138,9 +138,14 @@ class RepositorioPerfil {
     return await _almacenamientoSeguro.read(key: Constantes.claveTokenJwt);
   }
 
-  Future<void> cerrarSesion() async {
+  Future<void> eliminarPerfiles() async {
     final db = await _baseDatos.baseDatos;
     await db.delete('perfil_paciente');
+  }
+
+  Future<void> cerrarSesion() async {
+    final db = await _baseDatos.baseDatos;
+    await db.update('perfil_paciente', {'token_jwt': null, 'token_expira_en': null});
     await _almacenamientoSeguro.delete(key: Constantes.claveTokenJwt);
   }
 }

@@ -44,7 +44,7 @@ class ClienteApi {
       case 422:
         throw ErrorValidacionException(_obtenerMensajeError(respuesta.body) ?? 'Datos de solicitud inválidos.');
       case 429:
-        throw ErrorValidacionException(_obtenerMensajeError(respuesta.body) ?? 'Demasiados intentos. Espere unos minutos e intente de nuevo.');
+        throw ErrorDemasiadasSolicitudesException(_obtenerMensajeError(respuesta.body) ?? 'Demasiados intentos. Espere unos minutos e intente de nuevo.');
       case 500:
         throw ErrorServidorException('Error interno del servidor. Por favor, intente más tarde.');
       default:
@@ -236,4 +236,12 @@ class ErrorConexionException implements Exception {
 
 class ErrorSinConexionException extends ErrorConexionException {
   ErrorSinConexionException(super.mensaje);
+}
+
+class ErrorDemasiadasSolicitudesException implements Exception {
+  final String mensaje;
+  ErrorDemasiadasSolicitudesException(this.mensaje);
+
+  @override
+  String toString() => mensaje;
 }

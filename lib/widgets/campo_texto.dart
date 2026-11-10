@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:iheart/nucleo/tema.dart';
 
 class CampoTexto extends StatelessWidget {
@@ -11,6 +12,9 @@ class CampoTexto extends StatelessWidget {
   final TextInputType tipoTeclado;
   final String? Function(String?)? validador;
   final bool habilitado;
+  final List<TextInputFormatter>? formateadores;
+  final ValueChanged<String>? alCambiar;
+  final AutovalidateMode? modoValidacion;
 
   const CampoTexto({
     super.key,
@@ -23,6 +27,9 @@ class CampoTexto extends StatelessWidget {
     this.tipoTeclado = TextInputType.text,
     this.validador,
     this.habilitado = true,
+    this.formateadores,
+    this.alCambiar,
+    this.modoValidacion,
   });
 
   @override
@@ -33,6 +40,9 @@ class CampoTexto extends StatelessWidget {
       keyboardType: tipoTeclado,
       validator: validador,
       enabled: habilitado,
+      inputFormatters: formateadores,
+      onChanged: alCambiar,
+      autovalidateMode: modoValidacion,
       style: const TextStyle(
         fontSize: 16,
         color: TemaApp.textoOscuro,

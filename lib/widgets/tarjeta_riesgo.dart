@@ -4,12 +4,29 @@ import 'package:iheart/nucleo/tema.dart';
 class TarjetaRiesgo extends StatelessWidget {
   final double? porcentajeRiesgo;
   final String nivelRiesgo;
+  final String? etiqueta;
+  final DateTime? actualizadoEn;
 
   const TarjetaRiesgo({
     super.key,
     required this.porcentajeRiesgo,
     required this.nivelRiesgo,
+    this.etiqueta,
+    this.actualizadoEn,
   });
+
+  String _textoTiempo(DateTime momento) {
+    final diferencia = DateTime.now().difference(momento);
+    if (diferencia.inMinutes < 1) return 'Actualizado hace instantes';
+    if (diferencia.inHours < 1) return 'Actualizado hace ${diferencia.inMinutes} min';
+    if (diferencia.inDays < 1) return 'Actualizado hace ${diferencia.inHours} h';
+    return 'Actualizado hace ${diferencia.inDays} d';
+  }
+
+  String _textoNivel() {
+    if (nivelRiesgo.isEmpty) return '';
+    return 'Riesgo ${nivelRiesgo.toLowerCase()}';
+  }
 
   Color _obtenerColorRiesgo(String nivel) {
     switch (nivel.toLowerCase()) {
@@ -51,7 +68,7 @@ class TarjetaRiesgo extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Riesgo Coronario Estimado',
+            'Riesgo de enfermedad de arterias coronarias',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -80,7 +97,7 @@ class TarjetaRiesgo extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  riesgo == null ? 'SIN EVALUACIÓN' : nivelRiesgo.toUpperCase(),
+                  riesgo == null ? 'SIN EVALUACIÓN' : (etiqueta ?? nivelRiesgo.toUpperCase()),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -96,7 +113,7 @@ class TarjetaRiesgo extends StatelessWidget {
               'Complete una evaluación para obtener una estimación.',
               style: TextStyle(color: TemaApp.textoSecundario),
             )
-          else
+          else ...[
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: LinearProgressIndicator(
@@ -106,6 +123,19 @@ class TarjetaRiesgo extends StatelessWidget {
                 color: colorRiesgo,
               ),
             ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(_textoNivel(), style: TextStyle(fontSize: 12, color: colorRiesgo, fontWeight: FontWeight.w600)),
+                if (actualizadoEn != null)
+                  Text(
+                    _textoTiempo(actualizadoEn!),
+                    style: const TextStyle(fontSize: 12, color: TemaApp.textoSecundario),
+                  ),
+              ],
+            ),
+          ],
         ],
       ),
     );

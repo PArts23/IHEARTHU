@@ -140,4 +140,37 @@ class ServicioBiometrico {
       throw StateError('No se pudo escribir la lectura de prueba: $error');
     }
   }
+
+  Future<List<double>> obtenerValoresRecientes(HealthDataType tipo, Duration ventana) async {
+    try {
+      final tienePermiso = await verificarPermisos([tipo]);
+      if (!tienePermiso) return const [];
+      final ahora = DateTime.now();
+      final datos = await obtenerDatosPorTipo(tipo, ahora.subtract(ventana), ahora);
+      final valores = <double>[];
+      for (final punto in datos) {
+        final valor = punto.value;
+        if (valor is NumericHealthValue) {
+          final numero = valor.numericValue.toDouble();
+          if (numero > 0) valores.add(numero);
+        }
+      }
+      return valores;
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<double?> obtenerUltimoValor(HealthDataType tipo, Duration ventana) async {
+    final valores = await obtenerValoresRecientes(tipo, ventana);
+    if (valores.isEmpty) return null;
+    return valores.last;
+  }
+
+  Future<double?> obtenerPromedio(HealthDataType tipo, Duration ventana) async {
+    final valores = await obtenerValoresRecientes(tipo, ventana);
+    if (valores.isEmpty) return null;
+    final suma = valores.reduce((a, b) => a + b);
+    return suma / valores.length;
+  }
 }

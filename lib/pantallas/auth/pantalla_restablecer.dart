@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:iheart/nucleo/constantes.dart';
 import 'package:iheart/nucleo/tema.dart';
 import 'package:iheart/nucleo/extensiones.dart';
+import 'package:iheart/nucleo/validadores.dart';
 import 'package:iheart/red/servicio_auth.dart';
 import 'package:iheart/widgets/boton_primario.dart';
 import 'package:iheart/widgets/boton_secundario.dart';
@@ -111,15 +112,7 @@ class _PantallaRestablecerState extends State<PantallaRestablecer> {
     }
   }
 
-  String? _validarCorreo(String? valor) {
-    if (valor == null || valor.trim().isEmpty) {
-      return 'El correo es obligatorio';
-    }
-    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(valor.trim())) {
-      return 'Ingrese un correo válido';
-    }
-    return null;
-  }
+  String? _validarCorreo(String? valor) => Validadores.correo(valor);
 
   String? _validarCodigo(String? valor) {
     final codigo = valor?.trim() ?? '';
@@ -133,25 +126,10 @@ class _PantallaRestablecerState extends State<PantallaRestablecer> {
     return null;
   }
 
-  String? _validarContrasena(String? valor) {
-    if (valor == null || valor.isEmpty) {
-      return 'La contraseña es obligatoria';
-    }
-    if (valor.length < Constantes.longitudMinimaContrasena) {
-      return 'La contraseña debe tener al menos ${Constantes.longitudMinimaContrasena} caracteres';
-    }
-    return null;
-  }
+  String? _validarContrasena(String? valor) => Validadores.contrasenaSegura(valor);
 
-  String? _validarConfirmacion(String? valor) {
-    if (valor == null || valor.isEmpty) {
-      return 'Confirme su contraseña';
-    }
-    if (valor != _controladorContrasena.text) {
-      return 'Las contraseñas no coinciden';
-    }
-    return null;
-  }
+  String? _validarConfirmacion(String? valor) =>
+      Validadores.confirmacion(valor, _controladorContrasena.text);
 
   Widget _construirIconoVisibilidad(bool oculto, VoidCallback alPresionar) {
     return IconButton(
@@ -186,7 +164,7 @@ class _PantallaRestablecerState extends State<PantallaRestablecer> {
       CampoTexto(
         controlador: _controladorContrasena,
         etiqueta: 'Nueva contraseña',
-        pista: 'Mínimo ${Constantes.longitudMinimaContrasena} caracteres',
+        pista: 'Mín. 8 caracteres, número, mayúscula y símbolo',
         iconoPrefijo: Icons.lock_outlined,
         ocultarTexto: _ocultarContrasena,
         iconoSufijo: _construirIconoVisibilidad(
@@ -219,8 +197,8 @@ class _PantallaRestablecerState extends State<PantallaRestablecer> {
         title: const Text('Restablecer contraseña'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: 'Volver al inicio de sesión',
-          onPressed: () => context.go('/login'),
+          tooltip: 'Volver a recuperar contraseña',
+          onPressed: () => context.go('/recuperar'),
         ),
         backgroundColor: TemaApp.rojoPrimario,
         foregroundColor: TemaApp.blancoFondo,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iheart/nucleo/tema.dart';
 import 'package:iheart/nucleo/extensiones.dart';
+import 'package:iheart/nucleo/validadores.dart';
 import 'package:iheart/red/servicio_auth.dart';
 import 'package:iheart/widgets/boton_primario.dart';
 import 'package:iheart/widgets/boton_secundario.dart';
@@ -59,7 +60,12 @@ class _PantallaRecuperarState extends State<PantallaRecuperar> {
     return Scaffold(
       backgroundColor: TemaApp.blancoFondo,
       appBar: AppBar(
-        title: const Text('Recuperar contraseña'),
+        title: const Text('Recuperación de contraseña'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: 'Volver al inicio de sesión',
+          onPressed: () => context.go('/login'),
+        ),
         backgroundColor: TemaApp.rojoPrimario,
         foregroundColor: TemaApp.blancoFondo,
       ),
@@ -86,26 +92,18 @@ class _PantallaRecuperarState extends State<PantallaRecuperar> {
                   pista: 'ejemplo@correo.com',
                   iconoPrefijo: Icons.email_outlined,
                   tipoTeclado: TextInputType.emailAddress,
-                  validador: (valor) {
-                    if (valor == null || valor.isEmpty) {
-                      return 'El correo es obligatorio';
-                    }
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(valor)) {
-                      return 'Ingrese un correo válido';
-                    }
-                    return null;
-                  },
+                  validador: Validadores.correo,
                 ),
                 const SizedBox(height: 36),
                 BotonPrimario(
-                  texto: 'Restablecer',
+                  texto: 'Restablecer contraseña',
                   cargando: _enviando,
                   alPresionar: _restablecer,
                 ),
                 const SizedBox(height: 16),
                 BotonSecundario(
                   texto: 'Cancelar',
-                  alPresionar: () => context.pop(),
+                  alPresionar: () => context.go('/login'),
                 ),
               ],
             ),

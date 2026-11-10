@@ -3,6 +3,10 @@ import 'package:iheart/datos/repositorio_perfil.dart';
 import 'package:iheart/datos/repositorio_sesiones.dart';
 import 'package:iheart/datos/repositorio_diagnosticos.dart';
 import 'package:iheart/datos/repositorio_modelo.dart';
+import 'package:iheart/datos/repositorio_preferencias.dart';
+import 'package:iheart/modelo/generador_recomendaciones.dart';
+import 'package:iheart/nucleo/validadores.dart';
+import 'package:iheart/red/servicio_wearable.dart';
 import 'package:iheart/red/servicio_auth.dart';
 import 'package:iheart/red/servicio_modelo.dart';
 import 'package:iheart/red/servicio_federado.dart';
@@ -16,6 +20,7 @@ class ProveedorEstado extends ChangeNotifier {
   final RepositorioSesiones _repoSesiones = RepositorioSesiones();
   final RepositorioDiagnosticos _repoDiagnosticos = RepositorioDiagnosticos();
   final RepositorioModelo _repoModelo = RepositorioModelo();
+  final RepositorioPreferencias _repoPreferencias = RepositorioPreferencias();
 
   final ServicioAuth _servicioAuth = ServicioAuth();
   final ServicioModelo _servicioModelo = ServicioModelo();
@@ -26,8 +31,22 @@ class ProveedorEstado extends ChangeNotifier {
   List<SesionMonitoreo> _sesiones = [];
   List<Map<String, Object?>> _historial = [];
   bool _cargando = false;
+  bool _perfilCalibrado = false;
+  bool _notificacionesActivas = true;
 
   PerfilPaciente? get perfil => _perfil;
+  bool get perfilCalibrado => _perfilCalibrado && InferenciaLocal.instancia.inicializado;
+  bool get notificacionesActivas => _notificacionesActivas;
+
+  bool get perfilCompleto {
+    final actual = _perfil;
+    if (actual == null) return false;
+    return actual.nombreCompleto.trim().isNotEmpty &&
+        Validadores.esEdadValida(actual.edad) &&
+        actual.sexo != null &&
+        Validadores.esPesoValido(actual.pesoKg) &&
+        Validadores.esAlturaValida(actual.alturaM);
+  }
   EstadoModeloFl? get estadoModelo => _estadoModelo;
   List<SesionMonitoreo> get sesiones => _sesiones;
   List<Map<String, Object?>> get historial => _historial;
@@ -40,9 +59,10 @@ class ProveedorEstado extends ChangeNotifier {
     try {
       _perfil = await _repoPerfil.obtenerPerfil();
       _estadoModelo = await _repoModelo.obtenerEstadoFL();
-      
-      // Intentar inicializar el modelo local si existe
+      _perfilCalibrado = await _repoPreferencias.obtenerPerfilCalibrado();
+      _notificacionesActivas = await _repoPreferencias.obtenerNotificacionesActivas();
       await InferenciaLocal.instancia.inicializar();
+      await ServicioWearable.instancia.inicializar();
       
       if (_perfil != null) {
         await cargarDatosLocales();
@@ -66,23 +86,39 @@ class ProveedorEstado extends ChangeNotifier {
 
     try {
       final resultado = await _servicioAuth.iniciarSesion(correo, contrasena);
+      final perfilLocal = await _repoPerfil.obtenerPerfil();
+      final perfilPrevio = perfilLocal != null &&
+              perfilLocal.correo.toLowerCase() == resultado.correo.toLowerCase()
+          ? perfilLocal
+          : null;
+      final mismoPaciente = perfilPrevio != null;
       final nuevoPerfil = PerfilPaciente(
         id: resultado.usuarioId,
         nombreCompleto: resultado.nombreCompleto,
         numeroDni: resultado.numeroDni,
         correo: resultado.correo,
+        edad: perfilPrevio?.edad,
+        sexo: perfilPrevio?.sexo,
+        pesoKg: perfilPrevio?.pesoKg,
+        alturaM: perfilPrevio?.alturaM,
         ciudad: 'Lima',
         pais: 'Perú',
         tokenJwt: resultado.token,
         tokenExpiraEn: resultado.expiraEn,
-        versionModeloLocal: 0,
+        versionModeloLocal: perfilPrevio?.versionModeloLocal ?? 0,
       );
+      if (!mismoPaciente) {
+        await _repoPerfil.eliminarPerfiles();
+        await _repoPreferencias.limpiar();
+        _perfilCalibrado = false;
+      }
 
       await _repoPerfil.guardarPerfil(nuevoPerfil);
-      _perfil = nuevoPerfil;
-
-      // Cargar datos tras iniciar sesión
+      _perfil = await _repoPerfil.obtenerPerfil();
       await cargarDatosLocales();
+      try {
+        await InferenciaLocal.instancia.inicializar();
+      } catch (_) {}
     } finally {
       _cargando = false;
       notifyListeners();
@@ -111,6 +147,18 @@ class ProveedorEstado extends ChangeNotifier {
       _cargando = false;
       notifyListeners();
     }
+  }
+
+  Future<void> marcarPerfilCalibrado(bool calibrado) async {
+    _perfilCalibrado = calibrado;
+    await _repoPreferencias.guardarPerfilCalibrado(calibrado);
+    notifyListeners();
+  }
+
+  Future<void> cambiarNotificaciones(bool activas) async {
+    _notificacionesActivas = activas;
+    await _repoPreferencias.guardarNotificacionesActivas(activas);
+    notifyListeners();
   }
 
   Future<void> cerrarSesion() async {
@@ -245,7 +293,7 @@ class ProveedorEstado extends ChangeNotifier {
     await cargarDatosLocales();
   }
 
-  Future<void> registrarDiagnosticoCompleto({
+  Future<int> registrarDiagnosticoCompleto({
     required SesionMonitoreo sesion,
     required CuestionarioClinico cuestionario,
     required double probabilidad,
@@ -296,27 +344,21 @@ class ProveedorEstado extends ChangeNotifier {
 
     final diagnosticoId = await _repoDiagnosticos.guardarDiagnostico(diagnostico);
 
-    // Guardar recomendaciones basadas en la severidad del riesgo
-    String textoRecomendacion = 'Mantenga una dieta saludable baja en sodio y grasas saturadas.';
-    String icono = 'diet';
-    if (riesgo == 'alto' || riesgo == 'crítico') {
-      textoRecomendacion = 'Se recomienda programar una cita con su cardiólogo a la brevedad.';
-      icono = 'doctor';
-    } else if (probabilidad > 0.3) {
-      textoRecomendacion = 'Reduzca el consumo de tabaco y aumente la actividad física diaria (al menos 30 min).';
-      icono = 'exercise';
+    final recomendaciones = GeneradorRecomendaciones.generar(
+      nivelRiesgo: riesgo,
+      cuestionario: cuestionario,
+    );
+    for (final recomendacion in recomendaciones) {
+      await _repoDiagnosticos.guardarRecomendacion(RecomendacionClinica(
+        idDiagnostico: diagnosticoId,
+        texto: recomendacion.texto,
+        icono: recomendacion.icono,
+        prioridad: recomendacion.prioridad,
+        creadoEn: DateTime.now().toIso8601String(),
+      ));
     }
 
-    await _repoDiagnosticos.guardarRecomendacion(RecomendacionClinica(
-      idDiagnostico: diagnosticoId,
-      texto: textoRecomendacion,
-      icono: icono,
-      prioridad: 1,
-      creadoEn: DateTime.now().toIso8601String(),
-    ));
-
-    // Si es un riesgo severo, disparar una alerta cardíaca local
-    if (riesgo == 'alto' || riesgo == 'crítico') {
+    if (_notificacionesActivas && (riesgo == 'alto' || riesgo == 'crítico')) {
       await _repoModelo.guardarAlerta(AlertaCardiaca(
         tipo: 'riesgo_alto',
         mensaje: 'Se ha detectado un riesgo cardiovascular elevado ($riesgo). Recomendamos consultar con un médico.',
@@ -327,5 +369,6 @@ class ProveedorEstado extends ChangeNotifier {
     }
 
     await cargarDatosLocales();
+    return diagnosticoId;
   }
 }

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iheart/nucleo/constantes.dart';
 import 'package:iheart/nucleo/tema.dart';
 import 'package:iheart/nucleo/extensiones.dart';
 import 'package:iheart/nucleo/proveedor_estado.dart';
+import 'package:iheart/nucleo/validadores.dart';
 import 'package:iheart/widgets/boton_primario.dart';
 import 'package:iheart/widgets/boton_secundario.dart';
 import 'package:iheart/widgets/campo_texto.dart';
@@ -23,7 +25,7 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
   final _controladorCorreo = TextEditingController();
   final _controladorContrasena = TextEditingController();
   final _controladorConfirmar = TextEditingController();
-  
+
   bool _ocultarContrasena = true;
   bool _ocultarConfirmar = true;
 
@@ -38,7 +40,10 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
   }
 
   Future<void> _registrar() async {
-    if (!_formularioClave.currentState!.validate()) return;
+    if (!_formularioClave.currentState!.validate()) {
+      context.mostrarMensajeError('Complete correctamente todos los campos obligatorios.');
+      return;
+    }
 
     final estado = context.read<ProveedorEstado>();
     try {
@@ -49,15 +54,99 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
         contrasena: _controladorContrasena.text,
         confirmarContrasena: _controladorConfirmar.text,
       );
-      if (mounted) {
-        context.mostrarMensajeExito('Cuenta registrada con éxito. Inicie sesión.');
-        context.go('/login');
-      }
     } catch (e) {
       if (mounted) {
         context.mostrarMensajeError(e.toString().replaceAll('Exception: ', ''));
       }
+      return;
     }
+
+    try {
+      await estado.iniciarSesion(_controladorCorreo.text.trim(), _controladorContrasena.text);
+      if (mounted) {
+        context.mostrarMensajeExito('Cuenta creada con éxito. Complete su perfil médico.');
+        context.irAPestana(3);
+      }
+    } catch (_) {
+      if (mounted) {
+        context.mostrarMensajeExito('Cuenta creada con éxito. Inicie sesión.');
+        context.go('/login');
+      }
+    }
+  }
+
+  Widget _construirIconoVisibilidad(bool oculto, VoidCallback alPresionar) {
+    return IconButton(
+      icon: Icon(
+        oculto ? Icons.visibility_off : Icons.visibility,
+        color: TemaApp.textoSecundario,
+      ),
+      onPressed: alPresionar,
+    );
+  }
+
+  List<Widget> _construirCamposIdentidad() {
+    return [
+      CampoTexto(
+        controlador: _controladorNombre,
+        etiqueta: 'Nombre completo',
+        pista: 'Ej. Juan Pérez',
+        iconoPrefijo: Icons.person_outline,
+        validador: Validadores.nombreCompleto,
+      ),
+      const SizedBox(height: 24),
+      CampoTexto(
+        controlador: _controladorDni,
+        etiqueta: 'Número de DNI',
+        pista: '8 dígitos',
+        iconoPrefijo: Icons.badge_outlined,
+        tipoTeclado: TextInputType.number,
+        formateadores: [
+          FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(Constantes.longitudDni),
+        ],
+        validador: Validadores.dni,
+      ),
+      const SizedBox(height: 24),
+      CampoTexto(
+        controlador: _controladorCorreo,
+        etiqueta: 'Correo electrónico',
+        pista: 'ejemplo@correo.com',
+        iconoPrefijo: Icons.email_outlined,
+        tipoTeclado: TextInputType.emailAddress,
+        validador: Validadores.correo,
+      ),
+    ];
+  }
+
+  List<Widget> _construirCamposContrasena() {
+    return [
+      CampoTexto(
+        controlador: _controladorContrasena,
+        etiqueta: 'Contraseña',
+        pista: 'Mín. 8 caracteres, número, mayúscula y símbolo',
+        iconoPrefijo: Icons.lock_outlined,
+        ocultarTexto: _ocultarContrasena,
+        iconoSufijo: _construirIconoVisibilidad(
+          _ocultarContrasena,
+          () => setState(() => _ocultarContrasena = !_ocultarContrasena),
+        ),
+        validador: Validadores.contrasenaSegura,
+      ),
+      const SizedBox(height: 24),
+      CampoTexto(
+        controlador: _controladorConfirmar,
+        etiqueta: 'Confirmar contraseña',
+        pista: 'Repita la contraseña',
+        iconoPrefijo: Icons.lock_outlined,
+        ocultarTexto: _ocultarConfirmar,
+        iconoSufijo: _construirIconoVisibilidad(
+          _ocultarConfirmar,
+          () => setState(() => _ocultarConfirmar = !_ocultarConfirmar),
+        ),
+        validador: (valor) => Validadores.confirmacion(valor, _controladorContrasena.text),
+      ),
+    ];
   }
 
   @override
@@ -85,119 +174,17 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const Text(
-                  'Cree una nueva cuenta para iniciar sus evaluaciones de salud cardiovascular.',
+                  'Cree su cuenta para llevar el control de su salud cardíaca',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: TemaApp.textoSecundario,
-                  ),
+                  style: TextStyle(fontSize: 14, color: TemaApp.textoSecundario),
                 ),
                 const SizedBox(height: 32),
-                CampoTexto(
-                  controlador: _controladorNombre,
-                  etiqueta: 'Nombre completo',
-                  pista: 'Ej. Juan Pérez',
-                  iconoPrefijo: Icons.person_outline,
-                  validador: (valor) {
-                    if (valor == null || valor.isEmpty) {
-                      return 'El nombre completo es obligatorio';
-                    }
-                    return null;
-                  },
-                ),
+                ..._construirCamposIdentidad(),
                 const SizedBox(height: 24),
-                CampoTexto(
-                  controlador: _controladorDni,
-                  etiqueta: 'Número de DNI',
-                  pista: '8 dígitos',
-                  iconoPrefijo: Icons.badge_outlined,
-                  tipoTeclado: TextInputType.number,
-                  validador: (valor) {
-                    if (valor == null || valor.isEmpty) {
-                      return 'El DNI es obligatorio';
-                    }
-                    if (valor.length != 8 || int.tryParse(valor) == null) {
-                      return 'El DNI debe tener exactamente 8 dígitos';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 24),
-                CampoTexto(
-                  controlador: _controladorCorreo,
-                  etiqueta: 'Correo electrónico',
-                  pista: 'ejemplo@correo.com',
-                  iconoPrefijo: Icons.email_outlined,
-                  tipoTeclado: TextInputType.emailAddress,
-                  validador: (valor) {
-                    if (valor == null || valor.isEmpty) {
-                      return 'El correo es obligatorio';
-                    }
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(valor)) {
-                      return 'Ingrese un correo válido';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 24),
-                CampoTexto(
-                  controlador: _controladorContrasena,
-                  etiqueta: 'Contraseña',
-                  pista: 'Mínimo ${Constantes.longitudMinimaContrasena} caracteres',
-                  iconoPrefijo: Icons.lock_outlined,
-                  ocultarTexto: _ocultarContrasena,
-                  iconoSufijo: IconButton(
-                    icon: Icon(
-                      _ocultarContrasena ? Icons.visibility_off : Icons.visibility,
-                      color: TemaApp.textoSecundario,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _ocultarContrasena = !_ocultarContrasena;
-                      });
-                    },
-                  ),
-                  validador: (valor) {
-                    if (valor == null || valor.isEmpty) {
-                      return 'La contraseña es obligatoria';
-                    }
-                    if (valor.length < Constantes.longitudMinimaContrasena) {
-                      return 'La contraseña debe tener al menos ${Constantes.longitudMinimaContrasena} caracteres';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 24),
-                CampoTexto(
-                  controlador: _controladorConfirmar,
-                  etiqueta: 'Confirmar contraseña',
-                  pista: 'Repita la contraseña',
-                  iconoPrefijo: Icons.lock_outlined,
-                  ocultarTexto: _ocultarConfirmar,
-                  iconoSufijo: IconButton(
-                    icon: Icon(
-                      _ocultarConfirmar ? Icons.visibility_off : Icons.visibility,
-                      color: TemaApp.textoSecundario,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _ocultarConfirmar = !_ocultarConfirmar;
-                      });
-                    },
-                  ),
-                  validador: (valor) {
-                    if (valor == null || valor.isEmpty) {
-                      return 'Confirme su contraseña';
-                    }
-                    if (valor != _controladorContrasena.text) {
-                      return 'Las contraseñas no coinciden';
-                    }
-                    return null;
-                  },
-                ),
+                ..._construirCamposContrasena(),
                 const SizedBox(height: 32),
                 BotonPrimario(
-                  texto: 'Registrar cuenta',
+                  texto: 'Crear nueva cuenta',
                   cargando: estado.cargando,
                   alPresionar: _registrar,
                 ),
@@ -210,10 +197,7 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
                 const Text(
                   'Al registrarse, usted acepta que sus datos médicos e historial se procesen localmente en su dispositivo y nunca se compartan sin su autorización.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: TemaApp.textoSecundario,
-                  ),
+                  style: TextStyle(fontSize: 12, color: TemaApp.textoSecundario),
                 ),
                 const SizedBox(height: 24),
               ],

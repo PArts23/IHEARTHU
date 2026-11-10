@@ -40,6 +40,8 @@ class ResultAuth {
 }
 
 class ServicioAuth {
+  static final Map<String, DateTime> _ultimasSolicitudesRecuperacion = {};
+
   final ClienteApi _cliente = ClienteApi.instancia;
   final FlutterSecureStorage _almacenamiento = const FlutterSecureStorage();
 
@@ -48,6 +50,13 @@ class ServicioAuth {
       return await _iniciarSesionEnServidor(correo, contrasena);
     } on ErrorSinConexionException {
       throw ErrorSinConexionException(Constantes.mensajeSinConexionAutenticacion);
+    } on ErrorAutenticacionException {
+      await _almacenamiento.delete(key: Constantes.claveTokenJwt);
+      throw ErrorAutenticacionException(Constantes.mensajeCredencialesInvalidas);
+    } on ErrorNoEncontradoException {
+      throw ErrorAutenticacionException(Constantes.mensajeCredencialesInvalidas);
+    } on ErrorValidacionException {
+      throw ErrorAutenticacionException(Constantes.mensajeCredencialesInvalidas);
     }
   }
 
@@ -55,7 +64,7 @@ class ServicioAuth {
     final respuesta = await _cliente.post(
       '/auth/login',
       cuerpo: {
-        'correo': correo,
+        'correo': correo.trim().toLowerCase(),
         'contrasena': contrasena,
       },
       requiereAuth: false,
@@ -66,6 +75,9 @@ class ServicioAuth {
     final tokenVal = mapa['token'];
     final token = tokenVal is String ? tokenVal : '';
 
+    if (token.isEmpty) {
+      throw ErrorAutenticacionException(Constantes.mensajeCredencialesInvalidas);
+    }
     await _almacenamiento.write(key: Constantes.claveTokenJwt, value: token);
 
     final respuestaMe = await _cliente.get(
@@ -101,9 +113,9 @@ class ServicioAuth {
       await _cliente.post(
         '/auth/register',
         cuerpo: {
-          'nombre_completo': nombreCompleto,
-          'numero_dni': numeroDni,
-          'correo': correo,
+          'nombre_completo': nombreCompleto.trim(),
+          'numero_dni': numeroDni.trim(),
+          'correo': correo.trim().toLowerCase(),
           'contrasena': contrasena,
           'confirmar_contrasena': confirmarContrasena,
         },
@@ -111,20 +123,64 @@ class ServicioAuth {
       );
     } on ErrorSinConexionException {
       throw ErrorSinConexionException(Constantes.mensajeSinConexionAutenticacion);
+    } on ErrorConflictoException catch (error) {
+      throw ErrorConflictoException(_traducirDuplicado(error.mensaje));
+    } on ErrorValidacionException catch (error) {
+      final traducido = _traducirDuplicado(error.mensaje);
+      if (traducido != error.mensaje) {
+        throw ErrorConflictoException(traducido);
+      }
+      rethrow;
     }
   }
 
+  String _traducirDuplicado(String mensaje) {
+    final texto = mensaje.toLowerCase();
+    final esDuplicado = texto.contains('registrad') ||
+        texto.contains('existe') ||
+        texto.contains('already') ||
+        texto.contains('duplic') ||
+        texto.contains('uso');
+    if (!esDuplicado) return mensaje;
+    if (texto.contains('dni')) return Constantes.mensajeDniRegistrado;
+    if (texto.contains('correo') || texto.contains('email')) return Constantes.mensajeCorreoRegistrado;
+    return mensaje;
+  }
+
+  int segundosRestantesRecuperacion(String correo) {
+    final ultima = _ultimasSolicitudesRecuperacion[correo.trim().toLowerCase()];
+    if (ultima == null) return 0;
+    final transcurridos = DateTime.now().difference(ultima).inSeconds;
+    final restantes = Constantes.segundosEsperaReenvioCodigo - transcurridos;
+    return restantes > 0 ? restantes : 0;
+  }
+
   Future<void> solicitarRecuperacion(String correo) async {
+    final correoNormalizado = correo.trim().toLowerCase();
+    final restantes = segundosRestantesRecuperacion(correoNormalizado);
+    if (restantes > 0) {
+      throw ErrorEsperaException(
+        'Por favor espere $restantes segundos antes de solicitar otro código',
+        restantes,
+      );
+    }
     try {
       await _cliente.post(
         '/auth/recuperar',
-        cuerpo: {'correo': correo.trim().toLowerCase()},
+        cuerpo: {'correo': correoNormalizado},
         requiereAuth: false,
       );
+      _ultimasSolicitudesRecuperacion[correoNormalizado] = DateTime.now();
     } on ErrorNoEncontradoException {
-      throw ErrorNoEncontradoException('No existe una cuenta registrada con este correo electrónico.');
+      throw ErrorNoEncontradoException(Constantes.mensajeCorreoNoRegistrado);
     } on ErrorSinConexionException {
-      throw ErrorSinConexionException(Constantes.mensajeSinConexionAutenticacion);
+      throw ErrorSinConexionException(Constantes.mensajeSinConexionRecuperacion);
+    } on ErrorDemasiadasSolicitudesException {
+      _ultimasSolicitudesRecuperacion[correoNormalizado] = DateTime.now();
+      throw ErrorEsperaException(
+        'Por favor espere ${Constantes.segundosEsperaReenvioCodigo} segundos antes de solicitar otro código',
+        Constantes.segundosEsperaReenvioCodigo,
+      );
     }
   }
 
@@ -146,9 +202,19 @@ class ServicioAuth {
         requiereAuth: false,
       );
     } on ErrorNoEncontradoException {
-      throw ErrorNoEncontradoException('No existe una cuenta registrada con este correo electrónico.');
+      throw ErrorNoEncontradoException(Constantes.mensajeCorreoNoRegistrado);
     } on ErrorSinConexionException {
-      throw ErrorSinConexionException(Constantes.mensajeSinConexionAutenticacion);
+      throw ErrorSinConexionException(Constantes.mensajeSinConexionRecuperacion);
     }
   }
+}
+
+class ErrorEsperaException implements Exception {
+  final String mensaje;
+  final int segundosRestantes;
+
+  ErrorEsperaException(this.mensaje, this.segundosRestantes);
+
+  @override
+  String toString() => mensaje;
 }

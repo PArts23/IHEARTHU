@@ -25,7 +25,7 @@ class PantallaInicio extends StatefulWidget {
 
 class _PantallaInicioState extends State<PantallaInicio> {
   static const List<String> _titulos = [
-    'I HEART',
+    'I HEAR(TH) U',
     'Iniciar diagnóstico',
     'Historial médico',
     'Mi perfil',

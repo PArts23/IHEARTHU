@@ -35,7 +35,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
     try {
       await estado.iniciarSesion(_controladorCorreo.text.trim(), _controladorContrasena.text);
       if (mounted) {
-        context.mostrarMensajeExito('Bienvenido a I HEART');
+        context.mostrarMensajeExito('Bienvenido a I HEAR(TH) U');
         context.irAPestana(0);
       }
     } catch (e) {
@@ -67,7 +67,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  'I HEART',
+                  'I HEAR(TH) U',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,

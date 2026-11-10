@@ -63,7 +63,7 @@ class GeneradorReportePdf {
                 _numero(fila['bpm_promedio'], ' bpm'),
                 _numero(fila['spo2_promedio'], '%'),
                 _numero(fila['hrv_ms'], ' ms'),
-                _numero(fila['probabilidad_cad'], '%', factor: 100, decimales: 1),
+                _numero(fila['probabilidad_cad'], ' %', factor: 100, decimales: 1),
                 _texto(fila['nivel_riesgo']),
                 _texto(fila['etiqueta_prediccion']),
               ])

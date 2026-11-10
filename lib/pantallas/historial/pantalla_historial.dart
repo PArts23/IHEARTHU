@@ -91,9 +91,19 @@ class _PantallaHistorialState extends State<PantallaHistorial> {
           Icon(Icons.info_outline, color: TemaApp.textoSecundario),
           SizedBox(width: 12),
           Expanded(
-            child: Text(
-              '${Constantes.mensajeSinRegistrosMonitoreo} Realice su primer diagnóstico desde la pestaña Evaluar.',
-              style: TextStyle(color: TemaApp.textoSecundario),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  Constantes.mensajeSinRegistrosMonitoreo,
+                  style: TextStyle(color: TemaApp.textoOscuro, fontWeight: FontWeight.w600),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Realice su primer diagnóstico desde la pestaña Evaluar.',
+                  style: TextStyle(color: TemaApp.textoSecundario, fontSize: 12),
+                ),
+              ],
             ),
           ),
         ],

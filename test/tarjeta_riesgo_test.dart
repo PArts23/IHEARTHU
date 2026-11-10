@@ -17,7 +17,7 @@ void main() {
       ),
     );
     expect(find.text('SIN EVALUACIÓN'), findsOneWidget);
-    expect(find.text('0.0%'), findsNothing);
+    expect(find.text('0.0 %'), findsNothing);
     expect(find.text('BAJO'), findsNothing);
     expect(find.byType(LinearProgressIndicator), findsNothing);
   });
@@ -32,7 +32,7 @@ void main() {
         ),
       ),
     );
-    expect(find.text('0.0%'), findsOneWidget);
+    expect(find.text('0.0 %'), findsOneWidget);
     expect(find.text('BAJO'), findsOneWidget);
     expect(find.text('SIN EVALUACIÓN'), findsNothing);
   });

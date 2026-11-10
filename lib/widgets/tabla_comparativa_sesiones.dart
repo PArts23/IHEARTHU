@@ -69,8 +69,8 @@ class TablaComparativaSesiones extends StatelessWidget {
         _fila('HRV', formatearValor(previa, 'hrv_ms', ' ms'), formatearValor(ultima, 'hrv_ms', ' ms')),
         _fila(
           'Riesgo CAD',
-          formatearValor(previa, 'probabilidad_cad', '%', factor: 100),
-          formatearValor(ultima, 'probabilidad_cad', '%', factor: 100),
+          formatearValor(previa, 'probabilidad_cad', ' %', factor: 100),
+          formatearValor(ultima, 'probabilidad_cad', ' %', factor: 100),
         ),
       ],
     );

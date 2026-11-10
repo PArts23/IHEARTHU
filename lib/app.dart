@@ -16,7 +16,7 @@ class App extends StatelessWidget {
         ),
       ],
       child: MaterialApp.router(
-        title: 'I HEART',
+        title: 'I HEAR(TH) U',
         theme: TemaApp.obtenerTema(),
         routerConfig: rutasApp,
         debugShowCheckedModeBanner: false,

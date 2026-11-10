@@ -149,7 +149,7 @@ class PantallaResultado extends StatelessWidget {
           const Text('RIESGO', style: TextStyle(color: TemaApp.textoSecundario, fontSize: 12, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text(
-            '${(datos.probabilidad * 100).toStringAsFixed(1)}%',
+            Constantes.formatearPorcentaje(datos.probabilidad),
             style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: color),
           ),
           const SizedBox(height: 8),

@@ -137,7 +137,7 @@ class _PantallaAjustesState extends State<PantallaAjustes> {
         builder: (contextoEstado, estado, _) {
           final (texto, color) = _estadoDispositivo(dispositivo == null ? EstadoWearable.sinVincular : estado);
           return _tarjeta(
-            titulo: 'Dispositivos vinculados',
+            titulo: 'Dispositivos Vinculados',
             subtitulo: '${dispositivo?.nombre ?? 'Sin dispositivo vinculado'}\n$texto',
             colorSubtitulo: color,
             icono: Icons.watch,

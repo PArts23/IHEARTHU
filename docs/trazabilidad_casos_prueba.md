@@ -1,4 +1,6 @@
-# Trazabilidad: Casos de Prueba v3.0 → Aplicación móvil
+# Trazabilidad: Casos de Prueba v3.1 → Aplicación móvil
+
+Documento de casos alineado: `docs/Casos_de_Prueba_v3.1.xlsx` (la hoja "CONTROL DE CAMBIOS" lista cada celda corregida respecto a la v3.0).
 
 Leyenda de estado: **App** = cubierto íntegramente en la app · **App + Backend** = la app está lista y depende de un endpoint/regla del backend · **App + Hardware** = requiere wearable/Bluetooth real para validarse · **Observación** = el caso tiene una inconsistencia que conviene corregir en el documento.
 
@@ -38,7 +40,7 @@ Leyenda de estado: **App** = cubierto íntegramente en la app · **App + Backend
 | CP035–CP036 | Formulario con/sin dolor | Preguntas sin respuesta por defecto; dolor "No" desactiva frecuencia y clasificación; obesidad calculada por IMC | App |
 | CP037 | Formulario incompleto | "Por favor, responda todas las preguntas antes de continuar" + preguntas pendientes resaltadas | App |
 | CP038 | Flecha en Iniciar diagnóstico | Vuelve a Inicio y descarta el formulario | App |
-| CP039–CP040 | Actualizar perfil / IMC | IMC de solo lectura, calculado en vivo | App · **Observación CP040** |
+| CP039–CP040 | Actualizar perfil / IMC | IMC de solo lectura, calculado en vivo y redondeado a un decimal (24.5 / 22.9) | App |
 | CP041 | Campos vacíos | "El nombre completo es obligatorio" e IMC "--" | App |
 | CP042–CP045 | Peso/altura inválidos o atípicos | Solo números; peso 20–300 kg; altura 0,5–2,5 m | App |
 | CP046 | Salir con cambios | "¿Desea salir sin guardar los cambios?" Sí/No | App |
@@ -51,7 +53,7 @@ Leyenda de estado: **App** = cubierto íntegramente en la app · **App + Backend
 | CP054–CP055 | Comparativa de sesiones | `TablaComparativaSesiones` (Parámetro / Penúltima sesión / Última sesión; "Sin registro previo" y "--") | App |
 | CP056 | Flecha en Mis diagnósticos | Regresa a Inicio; barra inferior con Historial resaltado | App |
 | CP057 | Banner FL | "Federated Learning activo", aviso de privacidad, fecha y hora de la última sincronización | App |
-| CP058 | Métricas | Accuracy, Precision, Recall y F1-Score con indicador y descripción | App · **Observación** (valor de Accuracy) |
+| CP058 | Métricas | Accuracy, Precision, Recall y F1-Score con indicador y descripción | App · **Pendiente:** valor de Accuracy |
 | CP059 | Dispositivo local | Nombre del teléfono, Conectado, batería en tiempo real, "PPG activo" | App |
 | CP060 | Nodo FL sin conexión | "Fuera de línea" / "Sincronización pausada"; indicadores en ámbar | App |
 | CP061 | Flecha en Modelo FL | Regresa a Configuración | App |
@@ -64,10 +66,24 @@ Leyenda de estado: **App** = cubierto íntegramente en la app · **App + Backend
 | CP069–CP070 | Informe de salud | Avatar con iniciales, "Informe de salud: <nombre>", HRV, Avg HR, riesgo, ≥2 recomendaciones y aviso legal | App |
 | CP072 | Exportar sin datos | Mensaje de datos insuficientes; no se genera archivo | App |
 
-## Observaciones sobre el documento de casos de prueba
+## Inconsistencias resueltas en la v3.1
 
-1. **CP039 y CP040 usan reglas de redondeo distintas.** 75 / 1,75² = 24,49 → CP039 espera 24,5 (redondeo). 70 / 1,75² = 22,86 → CP040 espera 22,8 (truncamiento). La app redondea a un decimal, así que muestra 24,5 y 22,9. Sugerencia: cambiar el resultado esperado de CP040 a 22,9.
-2. **CP058:** el valor de Accuracy del modelo global no está registrado. `Constantes.accuracyModeloGlobal` está vacío y la pantalla muestra "--" hasta que se complete. Precision (0,649), Recall (0,867) y F1 (0,742) provienen de las métricas validadas.
-3. **CP035 y CP069** redactan distinto las mismas preguntas. La app usa la redacción de CP035–CP037, que aparece en más casos.
-4. **CP002** usa la contraseña "ClaveErronea2026", que no cumple la política de CP015. Por eso el login solo valida que la contraseña no esté vacía y deja la verificación al backend.
-5. **CP059** espera el nombre comercial ("Redmi Note 10"). La app lo toma del nombre del dispositivo configurado en Android y, si no existe, usa el modelo técnico.
+| Tema | Decisión |
+|------|----------|
+| Redondeo del IMC (CP039 vs CP040) | Un decimal con redondeo en ambos: 24.5 y 22.9. Se agregó a CP040 la altura de 1.75 m como precondición. |
+| Contraseña de CP002 | Dato cambiado a `ClaveErronea2026*` para cumplir la política de CP015. El login solo valida que la contraseña no esté vacía. |
+| Redacción de preguntas (CP035 vs CP069) | CP069 usa la misma redacción que CP035 y que la app. Las opciones de frecuencia (1–5) y tipo de dolor reflejan las de la app. |
+| ECG vs PPG | La app no captura ECG; CP025, CP027, CP054 y CP066 hablan de PPG / evaluación cardíaca. |
+| Nombre de la aplicación | "I HEAR(TH) U" en el login, la cabecera de Inicio, el título de la app y la etiqueta de Android. |
+| Formato del porcentaje de riesgo | Un decimal con espacio ("18.0 %") en Inicio, el informe, el historial, la tabla comparativa y el PDF. |
+| Nombres de pantallas | 'Registro de paciente', 'Recuperación de contraseña', 'Restablecer contraseña', 'Historial médico', 'Mis diagnósticos', 'Configuración', 'Modelo predictivo FL', 'Dispositivos Vinculados'. |
+| Perfil "cifrado localmente" (CP009) | El perfil se almacena en SQLite local sin cifrar; el caso describe ahora "almacenado localmente". |
+| Exportación PDF (CP031) | Se eliminaron los permisos de almacenamiento y `file_picker`; el PDF se comparte por el menú nativo. |
+| Rondas federadas (CP050) | La pantalla del modelo FL muestra la ronda federada y la versión del modelo. |
+| Estado vacío (CP034) | El mensaje exacto se muestra en su propia línea; la instrucción va debajo. |
+| Wearable | Nombre oficial "Xiaomi Smart Band 10". |
+
+## Pendiente
+
+- **CP058 – Accuracy:** el valor del modelo global no está registrado en el proyecto. Completar `Constantes.accuracyModeloGlobal` en `lib/nucleo/constantes.dart`; mientras tanto la métrica muestra "--". Se dejó de usar el valor de `accuracyLocal`, que `fedavg_local.dart` genera de forma aleatoria.
+- **CP059:** la app muestra el nombre del dispositivo configurado en Android ("Redmi Note 10") y, si no existe, el modelo técnico.

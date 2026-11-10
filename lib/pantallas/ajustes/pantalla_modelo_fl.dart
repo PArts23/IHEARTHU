@@ -126,6 +126,10 @@ class _PantallaModeloFLState extends State<PantallaModeloFL> {
                   'Última sincronización: ${_formatearSincronizacion(modelo?.ultimaSincronizacion)}',
                   style: const TextStyle(color: TemaApp.textoSecundario, fontSize: 12),
                 ),
+                Text(
+                  'Ronda federada: ${modelo?.rondaActual ?? 0} · Versión del modelo: v${modelo?.versionLocal ?? 0}',
+                  style: const TextStyle(color: TemaApp.textoSecundario, fontSize: 12),
+                ),
               ],
             ),
           ),
@@ -193,8 +197,7 @@ class _PantallaModeloFLState extends State<PantallaModeloFL> {
       ),
       child: Column(
         children: [
-          _construirMetrica('Accuracy', 'Proporción de predicciones correctas.',
-              Constantes.accuracyModeloGlobal ?? modelo?.accuracyLocal, enLinea),
+          _construirMetrica('Accuracy', 'Proporción de predicciones correctas.', Constantes.accuracyModeloGlobal, enLinea),
           _construirMetrica('Precision', 'Clasificaciones positivas correctas respecto al total de clasificaciones.',
               Constantes.precisionModeloGlobal, enLinea),
           _construirMetrica('Recall', 'Instancias relevantes de una clase positiva.', Constantes.recallModeloGlobal, enLinea),

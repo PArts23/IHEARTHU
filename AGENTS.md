@@ -1,4 +1,4 @@
-# AGENTS.md — I HEART Flutter App
+# AGENTS.md — I HEAR(TH) U Flutter App
 
 ## Contexto del proyecto
 
@@ -103,14 +103,14 @@ lib/
     tarjeta_signo_vital.dart
 ```
 
-Los textos, mensajes y reglas de validación deben mantenerse alineados con `Casos_de_Prueba_v3.0.xlsx`. La trazabilidad CP → código está en `docs/trazabilidad_casos_prueba.md`; los mensajes viven en `nucleo/constantes.dart` y las reglas en `nucleo/validadores.dart`.
+Los textos, mensajes y reglas de validación deben mantenerse alineados con `docs/Casos_de_Prueba_v3.1.xlsx`. La trazabilidad CP → código está en `docs/trazabilidad_casos_prueba.md`; los mensajes viven en `nucleo/constantes.dart` y las reglas en `nucleo/validadores.dart`.
 
 ---
 
 ## Pantallas y su propósito
 
 ### Auth
-- **pantalla_login.dart** — Correo + contraseña. Botones: Acceder, Registrar nueva cuenta, Olvidé mi contraseña. Footer: "Sus datos nunca salen de su dispositivo."
+- **pantalla_login.dart** — Correo + contraseña. Botones: Acceder, Registrar una nueva cuenta, Olvidé mi contraseña. Footer: "Sus datos nunca salen de su dispositivo."
 - **pantalla_registro.dart** — Nombre completo, DNI (8 dígitos), correo, contraseña, confirmar contraseña. Footer privacidad.
 - **pantalla_recuperar.dart** — Solo campo correo + botón Restablecer + Cancelar.
 

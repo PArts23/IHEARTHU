@@ -55,7 +55,7 @@ class TarjetaDiagnostico extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              TablaComparativaSesiones.formatearValor(diagnostico, 'probabilidad_cad', '%', factor: 100),
+              TablaComparativaSesiones.formatearValor(diagnostico, 'probabilidad_cad', ' %', factor: 100),
               style: TextStyle(fontWeight: FontWeight.bold, color: color),
             ),
             Text(nivel.toUpperCase(), style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600)),

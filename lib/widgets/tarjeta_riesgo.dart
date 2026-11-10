@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iheart/nucleo/constantes.dart';
 import 'package:iheart/nucleo/tema.dart';
 
 class TarjetaRiesgo extends StatelessWidget {
@@ -80,7 +81,7 @@ class TarjetaRiesgo extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                riesgo == null ? '—' : '${(riesgo * 100).toStringAsFixed(1)}%',
+                riesgo == null ? '—' : Constantes.formatearPorcentaje(riesgo),
                 style: TextStyle(
                   fontSize: 36,
                   fontWeight: FontWeight.bold,

@@ -54,9 +54,11 @@ class Constantes {
   static const String avisoLegalRiesgo =
       'La estimación de riesgo es meramente informativa. Consulte a un profesional de la salud.';
 
-  static const String nombreWearablePredeterminado = 'Xiaomi Smartband 10';
+  static const String nombreAplicacion = 'I HEAR(TH) U';
 
   static const double? accuracyModeloGlobal = null;
+
+  static String formatearPorcentaje(double fraccion) => '${(fraccion * 100).toStringAsFixed(1)} %';
   static const double precisionModeloGlobal = 0.649;
   static const double recallModeloGlobal = 0.867;
   static const double f1ModeloGlobal = 0.742;

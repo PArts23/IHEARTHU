@@ -10,11 +10,6 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
-    <!-- Permisos de almacenamiento para exportar CSV -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
-
     <!-- Permisos de Notificaciones -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
@@ -33,11 +28,10 @@
     <uses-permission android:name="android.permission.health.WRITE_HEART_RATE_VARIABILITY" />
 
     <application
-        android:label="I Heart"
+        android:label="I HEAR(TH) U"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:enableOnBackInvokedCallback="true"
-        android:requestLegacyExternalStorage="true">
+        android:enableOnBackInvokedCallback="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -58,6 +52,23 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <meta-data android:name="flutter_deeplinking_enabled" android:value="true" />
+            <!-- Enlace del correo de recuperación (App Link verificado con assetlinks.json del backend) -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https"
+                      android:host="i-heart-127320450404.europe-west1.run.app"
+                      android:pathPrefix="/restablecer" />
+            </intent-filter>
+            <!-- Esquema propio usado por la página puente del backend: iheart://app/restablecer -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="iheart" android:host="app" android:pathPrefix="/restablecer" />
             </intent-filter>
         </activity>
 

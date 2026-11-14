@@ -1,4 +1,4 @@
-# AGENTS.md — I HEART Flutter App
+# AGENTS.md — I HEAR(TH) U Flutter App
 
 ## Contexto del proyecto
 
@@ -37,29 +37,42 @@ lib/
     constantes.dart
     tema.dart
     extensiones.dart
+    validadores.dart
+    proveedor_estado.dart
   datos/
     base_datos_local.dart
     repositorio_perfil.dart
     repositorio_sesiones.dart
     repositorio_diagnosticos.dart
     repositorio_modelo.dart
+    repositorio_dispositivos.dart
+    repositorio_preferencias.dart
   red/
     cliente_api.dart
     servicio_auth.dart
     servicio_modelo.dart
     servicio_federado.dart
+    servicio_biometrico.dart
+    servicio_wearable.dart
+    servicio_conectividad.dart
+    servicio_dispositivo_local.dart
+  reportes/
+    generador_reporte_pdf.dart
   modelo/
     inferencia_local.dart
     preprocesamiento.dart
     feature_engineering.dart
     fedavg_local.dart
+    generador_recomendaciones.dart
   pantallas/
     auth/
       pantalla_login.dart
       pantalla_registro.dart
       pantalla_recuperar.dart
+      pantalla_restablecer.dart
     inicio/
       pantalla_inicio.dart
+      vista_panel_principal.dart
     evaluar/
       pantalla_cuestionario.dart
       pantalla_calibracion.dart
@@ -67,11 +80,13 @@ lib/
     historial/
       pantalla_historial.dart
       pantalla_diagnostico_detalle.dart
+      pantalla_mis_diagnosticos.dart
     perfil/
       pantalla_perfil.dart
     ajustes/
       pantalla_ajustes.dart
       pantalla_iot.dart
+      pantalla_health_connect.dart
       pantalla_modelo_fl.dart
   widgets/
     tarjeta_riesgo.dart
@@ -81,14 +96,21 @@ lib/
     campo_texto.dart
     tarjeta_sesion.dart
     indicador_carga.dart
+    pregunta_opciones.dart
+    tabla_comparativa_sesiones.dart
+    tarjeta_diagnostico.dart
+    tarjeta_ppg_en_vivo.dart
+    tarjeta_signo_vital.dart
 ```
+
+Los textos, mensajes y reglas de validación deben mantenerse alineados con `docs/Casos_de_Prueba_v3.1.xlsx`. La trazabilidad CP → código está en `docs/trazabilidad_casos_prueba.md`; los mensajes viven en `nucleo/constantes.dart` y las reglas en `nucleo/validadores.dart`.
 
 ---
 
 ## Pantallas y su propósito
 
 ### Auth
-- **pantalla_login.dart** — Correo + contraseña. Botones: Acceder, Registrar nueva cuenta, Olvidé mi contraseña. Footer: "Sus datos nunca salen de su dispositivo."
+- **pantalla_login.dart** — Correo + contraseña. Botones: Acceder, Registrar una nueva cuenta, Olvidé mi contraseña. Footer: "Sus datos nunca salen de su dispositivo."
 - **pantalla_registro.dart** — Nombre completo, DNI (8 dígitos), correo, contraseña, confirmar contraseña. Footer privacidad.
 - **pantalla_recuperar.dart** — Solo campo correo + botón Restablecer + Cancelar.
 
@@ -263,9 +285,9 @@ Inicio frío
   ├── Sin token → PantallaLogin
   │     ├── → PantallaRegistro
   │     └── → PantallaRecuperar
-  └── Con token válido
-        ├── Sin modelo local → PantallaCalibración
-        └── Con modelo → PantallaInicio (tab shell)
+  └── Con token válido → PantallaInicio (tab shell)
+        │     INICIAR NUEVO DIAGNÓSTICO: perfil calibrado → Evaluar; si no → PantallaCalibración
+        └── PantallaInicio
               ├── Inicio — Dashboard riesgo + métricas + gráfico
               ├── Evaluar → PantallaCuestionario → PantallaResultado
               ├── Historial → PantallaHistorial → PantallaDiagnosticoDetalle
@@ -285,6 +307,8 @@ Inicio frío
 |----------------------------|--------|------------------------|----------------|
 | Registrar cuenta           | POST   | /auth/register         | No             |
 | Iniciar sesión             | POST   | /auth/login            | No             |
+| Solicitar código de recuperación | POST | /auth/recuperar    | No             |
+| Restablecer contraseña     | POST   | /auth/restablecer      | No             |
 | Consultar versión modelo   | GET    | /model/version         | Sí             |
 | Descargar modelo tflite    | GET    | /model/latest          | Sí             |
 | Subir pesos FL             | POST   | /federated/upload      | Sí             |

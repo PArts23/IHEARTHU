@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' show SocketException;
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:iheart/nucleo/constantes.dart';
@@ -32,6 +33,8 @@ class ClienteApi {
     }
 
     switch (respuesta.statusCode) {
+      case 400:
+        throw ErrorValidacionException(_obtenerMensajeError(respuesta.body) ?? 'Solicitud inválida.');
       case 401:
         throw ErrorAutenticacionException('Sesión no autorizada o expirada.');
       case 409:
@@ -40,6 +43,8 @@ class ClienteApi {
         throw ErrorNoEncontradoException('Recurso no encontrado en el servidor.');
       case 422:
         throw ErrorValidacionException(_obtenerMensajeError(respuesta.body) ?? 'Datos de solicitud inválidos.');
+      case 429:
+        throw ErrorDemasiadasSolicitudesException(_obtenerMensajeError(respuesta.body) ?? 'Demasiados intentos. Espere unos minutos e intente de nuevo.');
       case 500:
         throw ErrorServidorException('Error interno del servidor. Por favor, intente más tarde.');
       default:
@@ -143,7 +148,9 @@ class ClienteApi {
     } on TimeoutException {
       throw ErrorConexionException('Tiempo de espera agotado. Verifique su conexión.');
     } on SocketException {
-      throw ErrorConexionException('Sin conexión a internet. Verifique su red.');
+      throw ErrorSinConexionException(Constantes.mensajeSinConexion);
+    } on http.ClientException {
+      throw ErrorSinConexionException(Constantes.mensajeSinConexion);
     } catch (e) {
       if (e is! Exception) {
         throw ErrorConexionException('Error de conexión desconocido.');
@@ -167,7 +174,9 @@ class ClienteApi {
     } on TimeoutException {
       throw ErrorConexionException('Tiempo de espera agotado. Verifique su conexión.');
     } on SocketException {
-      throw ErrorConexionException('Sin conexión a internet. Verifique su red.');
+      throw ErrorSinConexionException(Constantes.mensajeSinConexion);
+    } on http.ClientException {
+      throw ErrorSinConexionException(Constantes.mensajeSinConexion);
     } catch (e) {
       if (e is! Exception) {
         throw ErrorConexionException('Error de conexión desconocido.');
@@ -176,8 +185,6 @@ class ClienteApi {
     }
   }
 }
-
-class SocketException implements Exception {}
 
 class ErrorAutenticacionException implements Exception {
   final String mensaje;
@@ -222,6 +229,18 @@ class ErrorServidorException implements Exception {
 class ErrorConexionException implements Exception {
   final String mensaje;
   ErrorConexionException(this.mensaje);
+
+  @override
+  String toString() => mensaje;
+}
+
+class ErrorSinConexionException extends ErrorConexionException {
+  ErrorSinConexionException(super.mensaje);
+}
+
+class ErrorDemasiadasSolicitudesException implements Exception {
+  final String mensaje;
+  ErrorDemasiadasSolicitudesException(this.mensaje);
 
   @override
   String toString() => mensaje;

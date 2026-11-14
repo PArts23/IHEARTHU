@@ -27,7 +27,7 @@ class TarjetaSesion extends StatelessWidget {
         border: Border.all(color: TemaApp.grisBorde, width: 0.8),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -47,7 +47,7 @@ class TarjetaSesion extends StatelessWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: TemaApp.rojoPrimario.withOpacity(0.08),
+                      color: TemaApp.rojoPrimario.withValues(alpha: 0.08),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(

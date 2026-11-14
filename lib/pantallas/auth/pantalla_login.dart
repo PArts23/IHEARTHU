@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:iheart/nucleo/validadores.dart';
 import 'package:iheart/nucleo/tema.dart';
 import 'package:iheart/nucleo/extensiones.dart';
 import 'package:iheart/nucleo/proveedor_estado.dart';
@@ -32,10 +33,10 @@ class _PantallaLoginState extends State<PantallaLogin> {
 
     final estado = context.read<ProveedorEstado>();
     try {
-      await estado.iniciarSesion(_controladorCorreo.text, _controladorContrasena.text);
+      await estado.iniciarSesion(_controladorCorreo.text.trim(), _controladorContrasena.text);
       if (mounted) {
-        context.mostrarMensajeExito('Bienvenido a I HEART');
-        context.go('/inicio');
+        context.mostrarMensajeExito('Bienvenido a I HEAR(TH) U');
+        context.irAPestana(0);
       }
     } catch (e) {
       if (mounted) {
@@ -66,7 +67,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  'I HEART',
+                  'I HEAR(TH) U',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -88,15 +89,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                   pista: 'ejemplo@correo.com',
                   iconoPrefijo: Icons.email_outlined,
                   tipoTeclado: TextInputType.emailAddress,
-                  validador: (valor) {
-                    if (valor == null || valor.isEmpty) {
-                      return 'El correo es obligatorio';
-                    }
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(valor)) {
-                      return 'Ingrese un correo válido';
-                    }
-                    return null;
-                  },
+                  validador: Validadores.correo,
                 ),
                 const SizedBox(height: 24),
                 CampoTexto(
@@ -116,15 +109,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                       });
                     },
                   ),
-                  validador: (valor) {
-                    if (valor == null || valor.isEmpty) {
-                      return 'La contraseña es obligatoria';
-                    }
-                    if (valor.length < 6) {
-                      return 'Mínimo 6 caracteres';
-                    }
-                    return null;
-                  },
+                  validador: Validadores.contrasenaObligatoria,
                 ),
                 const SizedBox(height: 32),
                 BotonPrimario(
@@ -147,14 +132,10 @@ class _PantallaLoginState extends State<PantallaLogin> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      '¿No tienes cuenta? ',
-                      style: TextStyle(color: TemaApp.textoSecundario),
-                    ),
                     GestureDetector(
                       onTap: () => context.push('/registro'),
                       child: const Text(
-                        'Registrar nueva cuenta',
+                        'Registrar una nueva cuenta',
                         style: TextStyle(
                           color: TemaApp.rojoPrimario,
                           fontWeight: FontWeight.bold,

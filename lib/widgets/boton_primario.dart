@@ -23,7 +23,7 @@ class BotonPrimario extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: TemaApp.rojoPrimario,
           foregroundColor: TemaApp.blancoFondo,
-          disabledBackgroundColor: TemaApp.rojoPrimario.withOpacity(0.6),
+          disabledBackgroundColor: TemaApp.rojoPrimario.withValues(alpha: 0.6),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(32),
           ),

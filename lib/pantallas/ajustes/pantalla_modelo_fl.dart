@@ -138,6 +138,26 @@ class _PantallaModeloFLState extends State<PantallaModeloFL> {
     );
   }
 
+  Widget _construirEstadoCalibracion(ProveedorEstado estado) {
+    final calibrado = estado.perfilCalibrado;
+    final color = calibrado ? TemaApp.verdeExito : TemaApp.amarilloAlerta;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(calibrado ? Icons.verified_outlined : Icons.tune, color: color, size: 20),
+          const SizedBox(width: 12),
+          Expanded(child: Text(estado.descripcionEstadoModelo, style: const TextStyle(fontSize: 12))),
+        ],
+      ),
+    );
+  }
+
   Widget _construirPrivacidad() {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -280,6 +300,8 @@ class _PantallaModeloFLState extends State<PantallaModeloFL> {
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
           children: [
             _construirBanner(enLinea, modelo),
+            const SizedBox(height: 12),
+            _construirEstadoCalibracion(estado),
             const SizedBox(height: 12),
             _construirPrivacidad(),
             const SizedBox(height: 24),

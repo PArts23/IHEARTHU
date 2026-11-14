@@ -38,6 +38,16 @@ class ProveedorEstado extends ChangeNotifier {
   bool get perfilCalibrado => _perfilCalibrado && InferenciaLocal.instancia.inicializado;
   bool get notificacionesActivas => _notificacionesActivas;
 
+  String get descripcionEstadoModelo {
+    if (perfilCalibrado && _notificacionesActivas) {
+      return 'El sistema está calibrado correctamente y las notificaciones de emergencia están activadas.';
+    }
+    if (perfilCalibrado) {
+      return 'El sistema está calibrado correctamente. Las notificaciones de emergencia están desactivadas.';
+    }
+    return 'El perfil local aún no está calibrado. Inicie un diagnóstico para calibrarlo.';
+  }
+
   bool get perfilCompleto {
     final actual = _perfil;
     if (actual == null) return false;

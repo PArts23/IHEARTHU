@@ -58,6 +58,34 @@ class _PantallaCuestionarioState extends State<PantallaCuestionario> {
   bool? _esfuerzoFisico;
   bool _disnea = false;
 
+  final Map<String, GlobalKey> _claves = {
+    for (final clave in const [
+      'frecuencia',
+      'tabaco',
+      'familiar',
+      'enfermedades',
+      'edema',
+      'dolor',
+      'frecuencia_dolor',
+      'tipo_dolor',
+      'esfuerzo',
+    ])
+      clave: GlobalKey(),
+  };
+
+  void _desplazarAPrimeraPendiente(String clave) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final contexto = _claves[clave]?.currentContext;
+      if (contexto == null || !contexto.mounted) return;
+      Scrollable.ensureVisible(
+        contexto,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeInOut,
+        alignment: 0.1,
+      );
+    });
+  }
+
   bool get _enfermedadesRespondidas => _ningunaEnfermedad || _enfermedadesSeleccionadas.isNotEmpty;
 
   List<String> _preguntasPendientes() {
@@ -203,6 +231,7 @@ class _PantallaCuestionarioState extends State<PantallaCuestionario> {
     final pendientes = _preguntasPendientes();
     if (pendientes.isNotEmpty) {
       setState(() => _mostrarPendientes = true);
+      _desplazarAPrimeraPendiente(pendientes.first);
       context.mostrarMensajeError(Constantes.mensajeCuestionarioIncompleto);
       return;
     }
@@ -280,6 +309,7 @@ class _PantallaCuestionarioState extends State<PantallaCuestionario> {
     final frecuencia = _frecuenciaCardiaca;
     final pendiente = _mostrarPendientes && frecuencia == null;
     return Container(
+      key: _claves['frecuencia'],
       padding: const EdgeInsets.all(20),
       decoration: _decoracionTarjeta(resaltar: pendiente),
       child: Column(
@@ -371,6 +401,7 @@ class _PantallaCuestionarioState extends State<PantallaCuestionario> {
   Widget _construirEnfermedades() {
     final pendiente = _mostrarPendientes && !_enfermedadesRespondidas;
     return Container(
+      key: _claves['enfermedades'],
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -431,6 +462,7 @@ class _PantallaCuestionarioState extends State<PantallaCuestionario> {
   List<Widget> _construirPreguntasHabitos() {
     return [
       PreguntaOpciones<String>(
+        key: _claves['tabaco'],
         pregunta: '¿Es fumador o ha dejado de fumar?',
         opciones: const [
           OpcionPregunta(etiqueta: 'No fumo', valor: 'no_fumador'),
@@ -442,6 +474,7 @@ class _PantallaCuestionarioState extends State<PantallaCuestionario> {
         alSeleccionar: (valor) => setState(() => _estadoTabaco = valor),
       ),
       PreguntaOpciones<bool>(
+        key: _claves['familiar'],
         pregunta: '¿Algún familiar suyo ha presentado enfermedad coronaria prematura?',
         opciones: _opcionesSiNo,
         seleccion: _antecedenteFamiliar,
@@ -450,6 +483,7 @@ class _PantallaCuestionarioState extends State<PantallaCuestionario> {
       ),
       _construirEnfermedades(),
       PreguntaOpciones<bool>(
+        key: _claves['edema'],
         pregunta: '¿Presenta edemas (hinchazón por acumulación de líquido en los tejidos)?',
         opciones: _opcionesSiNo,
         seleccion: _edema,
@@ -463,6 +497,7 @@ class _PantallaCuestionarioState extends State<PantallaCuestionario> {
     final dolorActivo = _dolorPecho == true;
     return [
       PreguntaOpciones<bool>(
+        key: _claves['dolor'],
         pregunta: '¿Presenta dolores en el pecho?',
         opciones: _opcionesSiNo,
         seleccion: _dolorPecho,
@@ -476,6 +511,7 @@ class _PantallaCuestionarioState extends State<PantallaCuestionario> {
         }),
       ),
       PreguntaOpciones<int>(
+        key: _claves['frecuencia_dolor'],
         pregunta: '¿Con qué frecuencia?',
         ayuda: '1 = muy rara vez · 5 = muy frecuente',
         opciones: List.generate(5, (indice) => OpcionPregunta(etiqueta: '${indice + 1}', valor: indice + 1)),
@@ -485,6 +521,7 @@ class _PantallaCuestionarioState extends State<PantallaCuestionario> {
         alSeleccionar: (valor) => setState(() => _frecuenciaDolor = valor),
       ),
       PreguntaOpciones<String>(
+        key: _claves['tipo_dolor'],
         pregunta: '¿Cómo clasificaría el dolor?',
         opciones: const [
           OpcionPregunta(etiqueta: 'Dolor típico (anginoso)', valor: 'tipico'),
@@ -497,6 +534,7 @@ class _PantallaCuestionarioState extends State<PantallaCuestionario> {
         alSeleccionar: (valor) => setState(() => _tipoDolor = valor),
       ),
       PreguntaOpciones<bool>(
+        key: _claves['esfuerzo'],
         pregunta: '¿Ha hecho algún esfuerzo físico reciente?',
         opciones: _opcionesSiNo,
         seleccion: _esfuerzoFisico,

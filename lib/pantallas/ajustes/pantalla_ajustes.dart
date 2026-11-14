@@ -103,14 +103,21 @@ class _PantallaAjustesState extends State<PantallaAjustes> {
     );
   }
 
-  String _descripcionModelo(ProveedorEstado estado) {
-    if (estado.perfilCalibrado && estado.notificacionesActivas) {
-      return 'El sistema está calibrado correctamente y las notificaciones de emergencia están activadas.';
-    }
-    if (estado.perfilCalibrado) {
-      return 'El sistema está calibrado correctamente. Las notificaciones de emergencia están desactivadas.';
-    }
-    return 'El perfil local aún no está calibrado. Inicie un diagnóstico para calibrarlo.';
+  String _resumenPerfil(ProveedorEstado estado) {
+    final perfil = estado.perfil;
+    if (perfil == null) return 'Información de perfil';
+    final edad = perfil.edad;
+    final imc = perfil.imc;
+    final detalles = [
+      if (edad != null) '$edad años',
+      if (perfil.sexo != null) perfil.sexo,
+      if (imc != null) 'IMC ${imc.toStringAsFixed(1)}',
+    ].whereType<String>().join(' · ');
+    return [
+      perfil.nombreCompleto,
+      perfil.correo,
+      detalles.isEmpty ? 'Perfil médico incompleto' : detalles,
+    ].join('\n');
   }
 
   (String, Color) _estadoDispositivo(EstadoWearable estado) {
@@ -156,14 +163,14 @@ class _PantallaAjustesState extends State<PantallaAjustes> {
       children: [
         _tarjeta(
           titulo: 'Revisar modelo federado',
-          subtitulo: _descripcionModelo(estado),
+          subtitulo: estado.descripcionEstadoModelo,
           icono: Icons.model_training_outlined,
           alPresionar: () => context.push('/modelo_fl'),
         ),
         const SizedBox(height: 16),
         _tarjeta(
           titulo: 'Mi perfil',
-          subtitulo: estado.perfil?.correo ?? 'Información de perfil',
+          subtitulo: _resumenPerfil(estado),
           icono: Icons.person_outline,
           accion: TextButton(
             onPressed: () => widget.alCambiarTab?.call(3),
